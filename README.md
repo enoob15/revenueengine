@@ -57,7 +57,8 @@ Apply [`supabase/schema.sql`](./supabase/schema.sql) to provision the storage ta
 3. Import the repo into Vercel.
 4. Set the production domain to `revenueengine.boone51.com`.
 5. Add the environment variables from `.env.example`.
-6. Redeploy after Stripe and Supabase credentials are in place.
+6. On Vercel Hobby, cron is limited to one daily optimization run; upgrade to Pro for hourly loops.
+7. Redeploy after Stripe and Supabase credentials are in place.
 
 ## Official affiliate references used in the seed catalog
 
