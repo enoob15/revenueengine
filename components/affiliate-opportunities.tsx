@@ -1,47 +1,37 @@
-import { AffiliateMatch, AffiliateProgram } from '@/lib/types';
-import { formatCurrency } from '@/lib/format';
+import { AffiliateProgram } from "@/lib/data/affiliate-programs";
 
-export function AffiliateOpportunities({
-  matches,
-  programs,
-}: {
-  matches: AffiliateMatch[];
+type AffiliateOpportunitiesProps = {
   programs: AffiliateProgram[];
-}) {
-  const programMap = new Map(programs.map((program) => [program.id, program]));
+};
 
+export function AffiliateOpportunities({ programs }: AffiliateOpportunitiesProps) {
   return (
-    <div className="panel p-6">
-      <p className="eyebrow">Affiliate Opportunity Engine</p>
-      <h2 className="mt-2 text-2xl font-semibold">Top partner placements</h2>
-      <div className="mt-5 space-y-4">
-        {matches.map((match) => {
-          const program = programMap.get(match.programId);
-          if (!program) {
-            return null;
-          }
-
-          return (
-            <article key={`${match.productSlug}-${match.programId}`} className="rounded-3xl border border-white/10 bg-white/4 p-4">
-              <div className="flex flex-wrap items-start justify-between gap-3">
-                <div>
-                  <div className="text-lg font-medium">{program.name}</div>
-                  <div className="mt-1 text-sm text-white/60">{match.productSlug} · {program.commissionSummary}</div>
-                </div>
-                <span className="chip">Fit {match.fitScore}</span>
+    <section className="rounded-3xl panel p-6">
+      <div className="eyebrow">Affiliate engine</div>
+      <h2 className="mt-3 text-2xl font-semibold text-white">Affiliate opportunities</h2>
+      <p className="mt-2 max-w-3xl text-sm text-slate-400">
+        Current partner targets scored for fit against the Boone51 Studios portfolio.
+      </p>
+      <div className="mt-6 grid gap-4 lg:grid-cols-2">
+        {programs.map((program) => (
+          <div key={program.name} className="rounded-2xl border border-white/10 bg-white/5 p-4">
+            <div className="flex items-start justify-between gap-4">
+              <div>
+                <div className="text-lg font-medium text-white">{program.name}</div>
+                <div className="text-sm text-slate-400">{program.category}</div>
               </div>
-              <p className="mt-3 text-sm text-white/70">{match.rationale}</p>
-              <div className="mt-4 flex flex-wrap gap-3 text-sm text-white/60">
-                <span>Placement: {match.suggestedPlacement}</span>
-                <span>Lift: {formatCurrency(match.estimatedMonthlyLift)}/mo</span>
-                <a className="text-cyan underline-offset-4 hover:underline" href={program.sourceUrl} target="_blank" rel="noreferrer">
-                  Official program
-                </a>
-              </div>
-            </article>
-          );
-        })}
+              <span className="rounded-full bg-blue-500/15 px-3 py-1 text-xs font-semibold uppercase tracking-wide text-blue-200">
+                {program.priority}
+              </span>
+            </div>
+            <p className="mt-3 text-sm text-slate-300">{program.fit}</p>
+            <div className="mt-4 grid gap-2 text-sm text-slate-200 sm:grid-cols-2">
+              <div>Commission: {program.commission}</div>
+              <div>Monthly potential: ${program.monthlyPotential}</div>
+            </div>
+          </div>
+        ))}
       </div>
-    </div>
+    </section>
   );
 }

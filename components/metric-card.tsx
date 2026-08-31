@@ -1,27 +1,15 @@
-const accentMap = {
-  signal: "from-signal/40 to-transparent",
-  cyan: "from-cyan/40 to-transparent",
-  ember: "from-ember/40 to-transparent",
-  gold: "from-gold/40 to-transparent",
+type MetricCardProps = {
+  label: string;
+  value: string;
+  helper: string;
 };
 
-export function MetricCard({
-  title,
-  value,
-  detail,
-  accent,
-}: {
-  title: string;
-  value: string;
-  detail: string;
-  accent: keyof typeof accentMap;
-}) {
+export function MetricCard({ label, value, helper }: MetricCardProps) {
   return (
-    <article className="panel relative overflow-hidden p-5">
-      <div className={`absolute inset-x-0 top-0 h-px bg-gradient-to-r ${accentMap[accent]}`} />
-      <p className="data-kicker">{title}</p>
-      <p className="metric-number mt-4">{value}</p>
-      <p className="mt-2 text-sm text-white/70">{detail}</p>
-    </article>
+    <div className="rounded-3xl panel p-5">
+      <div className="text-sm text-slate-400">{label}</div>
+      <div className="mt-3 text-3xl font-semibold text-white">{value}</div>
+      <div className="mt-2 text-sm text-blue-200">{helper}</div>
+    </div>
   );
 }

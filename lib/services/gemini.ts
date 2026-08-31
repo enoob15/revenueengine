@@ -1,37 +1,50 @@
-import { getEnv } from "@/lib/services/env";
+const GEMINI_MODEL = "gemini-2.5-flash";
 
-export async function generateGeminiStrategy(prompt: string) {
-  const apiKey = getEnv("GEMINI_API_KEY");
-  const model = getEnv("GEMINI_MODEL") ?? "gemini-2.5-flash";
+type GeminiResponse = {
+  candidates?: Array<{
+    content?: {
+      parts?: Array<{
+        text?: string;
+      }>;
+    };
+  }>;
+};
+
+export async function generateGeminiPricingInsight(prompt: string): Promise<string | null> {
+  const apiKey = process.env.GEMINI_API_KEY;
 
   if (!apiKey) {
     return null;
   }
 
   const response = await fetch(
-    `https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent`,
+    `https://generativelanguage.googleapis.com/v1beta/models/${GEMINI_MODEL}:generateContent?key=${apiKey}`,
     {
       method: "POST",
       headers: {
-        "Content-Type": "application/json",
-        "x-goog-api-key": apiKey,
+        "Content-Type": "application/json"
       },
       body: JSON.stringify({
         contents: [
           {
             role: "user",
-            parts: [{ text: prompt }],
-          },
-        ],
+            parts: [
+              {
+                text: prompt
+              }
+            ]
+          }
+        ]
       }),
-      cache: "no-store",
-    },
+      cache: "no-store"
+    }
   );
 
   if (!response.ok) {
-    throw new Error(`Gemini request failed: ${response.status}`);
+    return null;
   }
 
-  const data = await response.json();
-  return data.candidates?.[0]?.content?.parts?.[0]?.text ?? null;
+  const payload = (await response.json()) as GeminiResponse;
+
+  return payload.candidates?.[0]?.content?.parts?.[0]?.text?.trim() ?? null;
 }

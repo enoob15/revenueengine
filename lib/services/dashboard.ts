@@ -1,48 +1,48 @@
 import { affiliatePrograms } from "@/lib/data/affiliate-programs";
-import { booneProducts, forecastSeries, pricingBenchmarks, revenueEngineTiers, revenueSeries } from "@/lib/data/portfolio";
-import { DashboardData, ProductSnapshot } from "@/lib/types";
-import { buildAffiliateMatches } from "@/lib/services/affiliate-engine";
-import { buildAutomationRuns } from "@/lib/services/automation";
-import { buildPricingExperiments } from "@/lib/services/pricing-optimizer";
-import {
-  buildMarketSignals,
-  buildOptimizationSuggestions,
-  buildPortfolioSummary,
-} from "@/lib/services/revenue-intelligence";
+import { automationTasks } from "@/lib/data/automation";
+import { forecast } from "@/lib/data/forecast";
+import { pricingExperiments } from "@/lib/data/pricing-experiments";
+import { products } from "@/lib/data/products";
+import { generateGeminiPricingInsight } from "@/lib/services/gemini";
 
-function buildProductSnapshots(): ProductSnapshot[] {
-  return booneProducts.map((product) => ({
-    ...product,
-    monthlyProfit: product.monthlyRevenue - product.monthlyCosts,
-    revenuePerVisitor: Number((product.monthlyRevenue / Math.max(product.visitorsMonthly, 1)).toFixed(2)),
-  }));
-}
+const growthRate = 14.6;
 
-export async function getDashboardData(): Promise<DashboardData> {
-  const products = buildProductSnapshots();
-  const affiliateMatches = buildAffiliateMatches(products);
-  const pricingExperiments = buildPricingExperiments(products);
-  const automationRuns = buildAutomationRuns(products, affiliateMatches);
-
-  const baseData: DashboardData = {
-    generatedAt: new Date().toISOString(),
-    portfolio: buildPortfolioSummary(products, affiliateMatches),
-    revenueSeries,
-    forecast: forecastSeries,
-    products,
-    affiliatePrograms,
-    affiliateMatches,
-    pricingExperiments,
-    automationRuns,
-    marketSignals: [],
-    optimizationSuggestions: [],
-    tiers: revenueEngineTiers,
-    pricingBenchmarks,
-  };
+export function getRevenueSummary() {
+  const totalMRR = products.reduce((total, product) => total + product.monthlyRevenue, 0);
+  const affiliateRevenue = affiliatePrograms.reduce(
+    (total, program) => total + program.monthlyPotential,
+    0
+  );
 
   return {
-    ...baseData,
-    marketSignals: buildMarketSignals(baseData),
-    optimizationSuggestions: buildOptimizationSuggestions(baseData),
+    totalMRR,
+    activeProducts: products.length,
+    affiliateRevenue,
+    growthRate
+  };
+}
+
+export async function getDashboardSnapshot() {
+  const summary = getRevenueSummary();
+  const fallbackInsight =
+    "Prioritize Pinpoint annual anchors and StatusCraft reliability-led pricing copy before expanding new affiliate placements.";
+
+  const generatedInsight =
+    (await generateGeminiPricingInsight(
+      `You are analyzing Boone51 Studios revenue operations. Products: ${products
+        .map((product) => `${product.name} (${product.pricingTiers.join("/")})`)
+        .join(", ")}. Experiments: ${pricingExperiments
+        .map((experiment) => `${experiment.product}: ${experiment.hypothesis}`)
+        .join(" | ")}. Reply with one concise pricing recommendation.`
+    )) ?? fallbackInsight;
+
+  return {
+    summary,
+    products,
+    affiliatePrograms,
+    pricingExperiments,
+    forecast,
+    automationTasks,
+    insight: generatedInsight
   };
 }

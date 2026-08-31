@@ -1,8 +1,9 @@
-import { NextResponse } from 'next/server';
-
-import { getDashboardData } from '@/lib/services/dashboard';
+import { NextResponse } from "next/server";
+import { products } from "@/lib/data/products";
 
 export async function GET() {
-  const data = await getDashboardData();
-  return NextResponse.json(data);
+  return NextResponse.json({
+    company: "Boone51 Studios",
+    products
+  });
 }

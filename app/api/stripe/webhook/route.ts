@@ -1,53 +1,51 @@
-import { NextResponse } from 'next/server';
-import Stripe from 'stripe';
+import { NextRequest, NextResponse } from "next/server";
+import Stripe from "stripe";
 
-import { insertRevenueEvent } from '@/lib/services/supabase';
-import { getEnv } from '@/lib/services/env';
+export const runtime = "nodejs";
 
-export const runtime = 'nodejs';
+function getStripeClient() {
+  const secretKey = process.env.STRIPE_SECRET_KEY;
 
-export async function POST(request: Request) {
-  const secretKey = getEnv('STRIPE_SECRET_KEY');
-  const webhookSecret = getEnv('STRIPE_WEBHOOK_SECRET');
-
-  if (!secretKey || !webhookSecret) {
-    return NextResponse.json({ error: 'Stripe is not configured' }, { status: 503 });
+  if (!secretKey) {
+    return null;
   }
 
-  const stripe = new Stripe(secretKey);
-  const signature = request.headers.get('stripe-signature');
+  return new Stripe(secretKey);
+}
 
-  if (!signature) {
-    return NextResponse.json({ error: 'Missing Stripe signature' }, { status: 400 });
+export async function POST(request: NextRequest) {
+  const stripe = getStripeClient();
+  const signature = request.headers.get("stripe-signature");
+  const webhookSecret = process.env.STRIPE_WEBHOOK_SECRET;
+
+  if (!stripe || !signature || !webhookSecret) {
+    return NextResponse.json(
+      {
+        received: false,
+        error: "Stripe webhook configuration is incomplete."
+      },
+      { status: 400 }
+    );
   }
 
   const payload = await request.text();
-  let event: Stripe.Event;
 
   try {
-    event = stripe.webhooks.constructEvent(payload, signature, webhookSecret);
+    const event = stripe.webhooks.constructEvent(payload, signature, webhookSecret);
+
+    return NextResponse.json({
+      received: true,
+      type: event.type
+    });
   } catch (error) {
-    const message = error instanceof Error ? error.message : 'Webhook verification failed';
-    return NextResponse.json({ error: message }, { status: 400 });
-  }
+    const message = error instanceof Error ? error.message : "Invalid webhook payload.";
 
-  if (
-    event.type === 'checkout.session.completed' ||
-    event.type === 'invoice.paid' ||
-    event.type === 'customer.subscription.created'
-  ) {
-    const object = event.data.object as { id?: string; amount_total?: number; currency?: string; metadata?: Record<string, string> };
-    await insertRevenueEvent({
-      provider: 'stripe',
-      stripe_event_id: event.id,
-      event_type: event.type,
-      amount: object.amount_total ? object.amount_total / 100 : null,
-      currency: object.currency ?? 'usd',
-      product_slug: object.metadata?.product_slug ?? null,
-      occurred_at: new Date(event.created * 1000).toISOString(),
-      raw: event,
-    }).catch(() => null);
+    return NextResponse.json(
+      {
+        received: false,
+        error: message
+      },
+      { status: 400 }
+    );
   }
-
-  return NextResponse.json({ received: true, eventType: event.type });
 }

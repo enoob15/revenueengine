@@ -1,12 +1,9 @@
-import { NextResponse } from 'next/server';
-
-import { getDashboardData } from '@/lib/services/dashboard';
+import { NextResponse } from "next/server";
+import { pricingExperiments } from "@/lib/data/pricing-experiments";
 
 export async function GET() {
-  const data = await getDashboardData();
   return NextResponse.json({
-    generatedAt: data.generatedAt,
-    pricingBenchmarks: data.pricingBenchmarks,
-    pricingExperiments: data.pricingExperiments,
+    company: "Boone51 Studios",
+    pricingExperiments
   });
 }

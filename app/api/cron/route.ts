@@ -1,37 +1,52 @@
-import { NextRequest, NextResponse } from 'next/server';
+import { NextRequest, NextResponse } from "next/server";
+import { affiliatePrograms } from "@/lib/data/affiliate-programs";
+import { pricingExperiments } from "@/lib/data/pricing-experiments";
+import { products } from "@/lib/data/products";
+import { generateGeminiPricingInsight } from "@/lib/services/gemini";
 
-import { getDashboardData } from '@/lib/services/dashboard';
-import { getCronSecret } from '@/lib/services/env';
-import { runAutomationCycle } from '@/lib/services/automation';
+async function runSyncTask() {
+  return {
+    task: "sync",
+    syncedProducts: products.length,
+    syncedAffiliatePrograms: affiliatePrograms.length,
+    syncedExperiments: pricingExperiments.length,
+    status: "ok"
+  };
+}
 
-function authorized(request: NextRequest) {
-  const secret = getCronSecret();
-  if (!secret) {
-    return true;
-  }
+async function runOptimizeTask() {
+  const fallback =
+    "Focus the next optimization cycle on Pinpoint annual pricing and StatusCraft mid-tier conversion.";
+  const insight =
+    (await generateGeminiPricingInsight(
+      `Create one concise revenue optimization note for Boone51 Studios using these products: ${products
+        .map((product) => product.name)
+        .join(", ")}.`
+    )) ?? fallback;
 
-  const bearer = request.headers.get('authorization')?.replace(/^Bearer\s+/i, '');
-  const header = request.headers.get('x-cron-secret');
-  const query = request.nextUrl.searchParams.get('secret');
-
-  return bearer === secret || header === secret || query === secret;
+  return {
+    task: "optimize",
+    status: "ok",
+    reviewedExperiments: pricingExperiments.length,
+    insight
+  };
 }
 
 export async function GET(request: NextRequest) {
-  if (!authorized(request)) {
-    return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+  const task = request.nextUrl.searchParams.get("task");
+
+  if (task === "sync") {
+    return NextResponse.json(await runSyncTask());
   }
 
-  const task = request.nextUrl.searchParams.get('task') ?? 'optimize';
-  const data = await getDashboardData();
-  const run = await runAutomationCycle(task, data.products.length);
+  if (task === "optimize") {
+    return NextResponse.json(await runOptimizeTask());
+  }
 
-  return NextResponse.json({
-    ok: true,
-    task,
-    executedAt: run.executed_at,
-    narrative: run.narrative,
-    portfolioMrr: data.portfolio.totalMrr,
-    queuedAutomations: data.automationRuns.length,
-  });
+  return NextResponse.json(
+    {
+      error: "Unsupported task. Use task=sync or task=optimize."
+    },
+    { status: 400 }
+  );
 }

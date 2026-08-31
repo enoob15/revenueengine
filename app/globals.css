@@ -4,12 +4,14 @@
 
 :root {
   color-scheme: dark;
-  --bg: #06101f;
-  --bg-alt: #0d1830;
-  --panel: rgba(255, 255, 255, 0.06);
-  --panel-strong: rgba(255, 255, 255, 0.1);
-  --text: #eef4ff;
-  --muted: #94a3c4;
+  --background: #06111f;
+  --background-soft: #0c1829;
+  --panel: rgba(17, 34, 56, 0.88);
+  --panel-strong: rgba(15, 28, 45, 0.96);
+  --border: rgba(148, 163, 184, 0.18);
+  --text: #f8fafc;
+  --muted: #94a3b8;
+  --accent: #3b82f6;
 }
 
 * {
@@ -21,13 +23,14 @@ html {
 }
 
 body {
-  min-height: 100vh;
   margin: 0;
-  color: var(--text);
+  min-height: 100vh;
   background:
-    radial-gradient(circle at top left, rgba(117, 216, 255, 0.16), transparent 28%),
-    radial-gradient(circle at top right, rgba(247, 195, 95, 0.14), transparent 22%),
-    linear-gradient(180deg, var(--bg) 0%, var(--bg-alt) 100%);
+    radial-gradient(circle at top right, rgba(59, 130, 246, 0.22), transparent 28%),
+    radial-gradient(circle at bottom left, rgba(14, 165, 233, 0.12), transparent 24%),
+    linear-gradient(180deg, var(--background), #020817 62%);
+  color: var(--text);
+  font-family: Arial, Helvetica, sans-serif;
 }
 
 a {
@@ -35,50 +38,21 @@ a {
   text-decoration: none;
 }
 
-@layer base {
-  body {
-    @apply font-sans antialiased;
-  }
-
-  h1,
-  h2,
-  h3,
-  h4 {
-    @apply font-display tracking-tight;
-  }
+.panel {
+  background: var(--panel);
+  border: 1px solid var(--border);
+  box-shadow: 0 18px 50px rgba(2, 6, 23, 0.45);
 }
 
-@layer components {
-  .shell {
-    @apply mx-auto w-full max-w-7xl px-4 sm:px-6 lg:px-8;
-  }
+.panel-strong {
+  background: var(--panel-strong);
+  border: 1px solid var(--border);
+}
 
-  .panel {
-    @apply rounded-[28px] border border-white/10 bg-white/5 shadow-panel backdrop-blur;
-  }
-
-  .eyebrow {
-    @apply text-xs font-semibold uppercase tracking-[0.28em] text-cyan;
-  }
-
-  .muted {
-    color: var(--muted);
-  }
-
-  .hero-grid {
-    background-image: linear-gradient(rgba(255, 255, 255, 0.06) 1px, transparent 1px), linear-gradient(90deg, rgba(255, 255, 255, 0.06) 1px, transparent 1px);
-    background-size: 42px 42px;
-  }
-
-  .chip {
-    @apply inline-flex items-center gap-2 rounded-full border border-white/10 px-3 py-1 text-sm text-white/80;
-  }
-
-  .data-kicker {
-    @apply text-[11px] uppercase tracking-[0.24em] text-white/60;
-  }
-
-  .metric-number {
-    @apply text-3xl font-semibold sm:text-4xl;
-  }
+.eyebrow {
+  color: #93c5fd;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+  font-size: 0.72rem;
+  font-weight: 700;
 }

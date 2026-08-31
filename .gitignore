@@ -1,9 +1,6 @@
-node_modules
 .next
-.vercel
-.env
+node_modules
 .env.local
-.env.*.local
-dist
-coverage
-*.tsbuildinfo
+.vercel
+*.log
+.env*.local
